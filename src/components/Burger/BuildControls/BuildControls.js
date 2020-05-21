@@ -9,7 +9,7 @@ const controls = [
 ]
 const buildControls = (props) => (
   <div className={classes.buildControls}>
-    <p><strong> current price : {props.price}</strong></p>
+    <p><strong> current price : {props.price.toFixed(2)}</strong></p>
     {controls.map(ctrl => (
       <BuildControl
         added={() => props.ingredientAdded(ctrl.type)}
@@ -19,7 +19,7 @@ const buildControls = (props) => (
       />
       
     ))}
-    <button className={classes.OrderButton} disabled={!props.purchasable}><strong>ORDER NOW</strong></button>
+    <button className={classes.OrderButton} disabled={!props.purchasable} onClick={props.ordered}><strong>ORDER NOW</strong></button>
   </div>
 )
 export default buildControls
