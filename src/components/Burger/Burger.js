@@ -5,7 +5,7 @@ import React from 'react'
 import classes from './Burger.module.css'
 import BurgerIngredient from './BurgerIngredient/BurgerIngredient'
 const Burger = (props) => {
-
+  
   let transformIngredients = Object.keys(props.ingredients).map(igKey => {
     return [...Array(props.ingredients[igKey])].map((_, i) =>
       <BurgerIngredient type={igKey} key={igKey + i} />
