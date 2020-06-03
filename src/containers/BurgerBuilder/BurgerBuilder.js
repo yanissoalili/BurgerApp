@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import {connect} from 'react-redux'
+import {Redirect} from 'react-router-dom'
 
 import Aux from '../../hoc/Auxilary'
 import Burger from '../../components/Burger/Burger'
@@ -9,32 +10,19 @@ import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary'
 import axios from '../../Axios-Order'
 import Spinner from '../../components/UI/Spinner/Spinner'
 import withErrorHandler from '../../hoc/withErrorHandler/WithErrorHandler'
-import * as actionTypes from '../../store/action'
+
+
+import {addIngredient, initIngredient, removeIngredient, purchaseInit} from '../../store/actions/index'
 
 class BurgerBuilder extends Component {
 
     state={
         
-        purchasing :false,
-        Loading:false,
-        error:false
+        purchasing :false 
+        
     }
     componentDidMount(){
-      
-
-      // console.log(this.props)
-      // axios.get('/ingrdients.json')
-      // .then(res => {
-      //   this.setState(
-      //     ingredients:res.data
-      //   })
-      // })
-      // .catch(err => {
-      
-      //   this.setState({
-      //     error:true
-      //   }) 
-      // })
+      this.props.onInitIngredient()
     }
   updatePurchaseState(ingredients){
       const sum = Object.keys(ingredients)
@@ -86,12 +74,18 @@ class BurgerBuilder extends Component {
 
   // }
   purchaseHandler = () =>{
-      this.setState({purchasing:true})
+      if(this.props.isAuthenticated){
+      this.setState({purchasing:true})}
+      else{
+        this.props.history.push('/auth')
+
+      }
   }
   purchaseCancelHandler= () =>{
       this.setState({purchasing:false})
   }
   purchaseContinuehandler= () =>{
+    this.props.onInitPurchase()
     this.props.history.push('/checkout')
     // without redux
     //  const queryParams=[]
@@ -107,7 +101,7 @@ class BurgerBuilder extends Component {
     //    search: '?' + queryString
     //  })
 
-  }
+  } 
   render () {
 
       const disabledInfo = {...this.props.ings}
@@ -115,7 +109,7 @@ class BurgerBuilder extends Component {
           disabledInfo[key] = disabledInfo[key] <= 0
       }
       let orderSummary=null
-      let burger = this.state.error ? <p>Ingredients can't be loaded </p> : <Spinner/>
+      let burger = this.props.error ? <p>Ingredients can't be loaded </p> : <Spinner/>
       if(this.props.ings){
         
       burger = (
@@ -128,6 +122,7 @@ class BurgerBuilder extends Component {
             price= {this.props.totalPrice}
             purchasable={this.updatePurchaseState(this.props.ings)}
             ordered={this.purchaseHandler}
+            isAuth = {this.props.isAuthenticated}
         />
         </Aux>)
        orderSummary = <OrderSummary ingredients = {this.props.ings} 
@@ -135,9 +130,6 @@ class BurgerBuilder extends Component {
        purchaseContinue={this.purchaseContinuehandler}
        price={this.props.totalPrice}
      />
-       if(this.state.Loading){
-         orderSummary=<Spinner/>
-       }  
       }
       
     return (
@@ -154,16 +146,20 @@ class BurgerBuilder extends Component {
 }
 const mapStatetoProps = state => {
   return {
-    ings: state.ingredients,
-    totalPrice : state.totalPrice 
+    ings: state.burgerBuilder.ingredients,
+    error : state.burgerBuilder.error,
+    totalPrice : state.burgerBuilder.totalPrice,
+    isAuthenticated: state.auth.token !==null
   }
 }
 const mapDispatchToProps = dispatch =>{
   return{
-    onIngredientAdded: (ingredientName) => dispatch({type:actionTypes.ADD_INGREDIENT, ingredientName:ingredientName }),
-    onIngredientRemoved: (ingredientName) => dispatch ({type: actionTypes.REMOVE_INGREDIENT, ingredientName:ingredientName})
+    onIngredientAdded: (ingredientName) => dispatch(addIngredient(ingredientName)),
+    onInitIngredient: () => dispatch(initIngredient()),
+    onIngredientRemoved: (ingredientName) => dispatch (removeIngredient(ingredientName)),
+    onInitPurchase: () => dispatch(purchaseInit())
+     
   }
-
 
 }
 export default connect(mapStatetoProps, mapDispatchToProps)(withErrorHandler(BurgerBuilder, axios))
